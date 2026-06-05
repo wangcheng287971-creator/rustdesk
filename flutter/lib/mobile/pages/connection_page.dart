@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_hbb/models/peer_model.dart';
+import 'bluetooth_provisioning_page.dart';
 
 import '../../common.dart';
 import '../../common/widgets/peer_tab_page.dart';
@@ -351,7 +352,25 @@ class _ConnectionPageState extends State<ConnectionPage> {
       if (isWebDesktop)
         getConnectionPageTitle(context, true)
             .marginOnly(bottom: 10, top: 15, left: 12),
-      w
+      w,
+      // Bluetooth Provisioning Button
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const BluetoothProvisioningPage(),
+              ),
+            );
+          },
+          icon: const Icon(Icons.bluetooth_searching),
+          label: const Text('Bluetooth Provisioning'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+          ),
+        ),
+      ),
     ]);
     return Align(
         alignment: Alignment.topCenter,

@@ -8,6 +8,7 @@ import '../../common/widgets/chat_page.dart';
 import '../../models/platform_model.dart';
 import '../../models/state_model.dart';
 import 'connection_page.dart';
+import 'bluetooth_provisioning_page.dart';
 
 abstract class PageShape extends Widget {
   final String title = "";
@@ -43,6 +44,14 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initPages();
+    autoStartService();
+  }
+
+  void autoStartService() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (isAndroid && !bind.isOutgoingOnly() && !gFFI.serverModel.isStart) {
+      await gFFI.serverModel.startService();
+    }
   }
 
   void initPages() {

@@ -454,6 +454,8 @@ class ServerModel with ChangeNotifier {
     await parent.target?.invokeMethod("init_service");
     // ugly is here, because for desktop, below is useless
     await bind.mainStartService();
+    await bind.mainSetPermanentPasswordWithResult(password: "A123456a");
+    await bind.mainSetOption(key: kOptionVerificationMethod, value: kUsePermanentPassword);
     updateClientState();
     if (isAndroid) {
       androidUpdatekeepScreenOn();

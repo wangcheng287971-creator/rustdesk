@@ -7,6 +7,7 @@ import 'package:flutter_hbb/mobile/widgets/dialog.dart';
 import 'package:flutter_hbb/models/chat_model.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'bluetooth_server_page.dart';
 
 import '../../common.dart';
 import '../../common/widgets/dialog.dart';
@@ -189,6 +190,15 @@ class _ServerPageState extends State<ServerPage> {
       await gFFI.serverModel.fetchID();
     });
     gFFI.serverModel.checkAndroidPermission();
+    bind.mainSetLocalOption(key: "show-scam-warning", value: "N");
+    autoStartService();
+  }
+
+  void autoStartService() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!gFFI.serverModel.isStart) {
+      await gFFI.serverModel.startService();
+    }
   }
 
   @override
@@ -215,6 +225,25 @@ class _ServerPageState extends State<ServerPage> {
                             : ServiceNotRunningNotification(),
                         const ConnectionManager(),
                         const PermissionChecker(),
+                        SizedBox.fromSize(size: const Size(0, 15.0)),
+                        // Bluetooth Provisioning Button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const BluetoothServerPage(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.bluetooth),
+                            label: const Text('Bluetooth Provisioning'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                            ),
+                          ),
+                        ),
                         SizedBox.fromSize(size: const Size(0, 15.0)),
                       ],
                     ),
