@@ -1,9 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import '../../common.dart';
 import '../../consts.dart';
 import 'home_page.dart';
