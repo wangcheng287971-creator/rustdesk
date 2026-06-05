@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../common.dart';
+import '../../common/formatter/id_formatter.dart';
 import '../../consts.dart';
 import 'home_page.dart';
-import 'connection_page.dart';
 
 class BluetoothProvisioningPage extends StatefulWidget {
   const BluetoothProvisioningPage({Key? key}) : super(key: key);
@@ -28,23 +29,42 @@ class _BluetoothProvisioningPageState extends State<BluetoothProvisioningPage> {
 
   void _connect() {
     if (_formKey.currentState!.validate()) {
-      // Close this page and go to connection page
+      final address = '${_ipController.text}:${_portController.text}';
+      final password = _passwordController.text;
+      
+      // Save the home page context if available
+      BuildContext? safeContext;
+      if (HomePage.homeKey.currentContext != null) {
+        safeContext = HomePage.homeKey.currentContext;
+      }
+      
+      // Switch to connection page first
+      if (HomePage.homeKey.currentState != null) {
+        HomePage.homeKey.currentState!.switchToConnectionPage();
+      }
+      
+      // Close this page
       Navigator.of(context).pop();
       
-      // Navigate to connection page and auto fill IP
-      if (HomePage.homeKey.currentState != null) {
-        HomePage.homeKey.currentState!.setState(() {
-          HomePage.homeKey.currentState!._selectedIndex = 0;
-        });
+      // Connect after a short delay
+      Future.delayed(const Duration(milliseconds: 300), () {
+        // Set ID controller if available
+        if (Get.isRegistered<IDTextEditingController>()) {
+          try {
+            final idController = Get.find<IDTextEditingController>();
+            idController.text = address;
+          } catch (e) {
+            debugPrint('Failed to set ID controller: $e');
+          }
+        }
         
-        // Wait a moment and then connect
-        Future.delayed(const Duration(milliseconds: 500), () {
-          final address = '${_ipController.text}:${_portController.text}';
-          gFFI.connectModel.addressController.text = address;
-          gFFI.connectModel.passwordController.text = _passwordController.text;
-          gFFI.connectModel.connect();
-        });
-      }
+        // Connect using the safe context we saved
+        if (safeContext != null && safeContext.mounted) {
+          connect(safeContext, address, password: password);
+        } else if (Get.context != null && Get.context!.mounted) {
+          connect(Get.context!, address, password: password);
+        }
+      });
     }
   }
 

@@ -40,6 +40,12 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  void switchToConnectionPage() {
+    setState(() {
+      _selectedIndex = 0;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
