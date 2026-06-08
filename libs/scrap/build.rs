@@ -144,6 +144,9 @@ fn generate_bindings(
     exact_file: &Path,
     regex: &str,
 ) {
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    
     let mut b = bindgen::builder()
         .header(ffi_header.to_str().unwrap())
         .allowlist_type(regex)
@@ -153,6 +156,31 @@ fn generate_bindings(
         .trust_clang_mangling(false)
         .layout_tests(false) // breaks 32/64-bit compat
         .generate_comments(false); // comments have prefix /*!\
+
+    // For Android cross-compilation, we need to use the NDK sysroot
+    if target_os == "android" {
+        if let Ok(ndk_home) = std::env::var("ANDROID_NDK_HOME") {
+            let arch = if target_arch == "aarch64" {
+                "aarch64-linux-android"
+            } else if target_arch == "arm" {
+                "arm-linux-androideabi"
+            } else if target_arch == "x86_64" {
+                "x86_64-linux-android"
+            } else {
+                "i686-linux-android"
+            };
+            let sysroot = PathBuf::from(ndk_home)
+                .join("toolchains")
+                .join("llvm")
+                .join("prebuilt")
+                .join("linux-x86_64")
+                .join("sysroot")
+                .join("usr")
+                .join("include");
+            b = b.clang_arg(format!("--sysroot={}", PathBuf::from(ndk_home).join("toolchains").join("llvm").join("prebuilt").join("linux-x86_64").join("sysroot").display()));
+            b = b.clang_arg(format!("-I{}", sysroot.join(arch).display()));
+        }
+    }
 
     for dir in include_paths {
         b = b.clang_arg(format!("-I{}", dir.display()));

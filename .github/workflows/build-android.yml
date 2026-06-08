@@ -53,14 +53,18 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install minimal dependencies
+      - name: Install essential dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
                clang \
                cmake \
                curl \
+               gcc-multilib \
+               g++-multilib \
                git \
+               libc6-dev \
+               libc6-dev-i386 \
                libclang-dev \
                libunwind-dev \
                llvm-dev \
@@ -123,6 +127,8 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          C_INCLUDE_PATH: "${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"
+          CPLUS_INCLUDE_PATH: "${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"
         run: |
           rustup target add ${{ matrix.job.target }}
           cargo install cargo-ndk --version ${{ env.CARGO_NDK_VERSION }} --locked
