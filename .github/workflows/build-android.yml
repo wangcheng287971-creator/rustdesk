@@ -16,6 +16,7 @@ env:
   FLUTTER_VERSION: "3.24.5"
   ANDROID_FLUTTER_VERSION: "3.24.5"
   TAG_NAME: "${{ inputs.upload-tag }}"
+  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
   VERSION: "1.4.6"
   NDK_VERSION: "r28c"
   UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
@@ -74,6 +75,13 @@ jobs:
         with:
           channel: "stable"
           flutter-version: ${{ env.ANDROID_FLUTTER_VERSION }}
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: /opt/artifacts/vcpkg
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+          doNotCache: false
 
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
