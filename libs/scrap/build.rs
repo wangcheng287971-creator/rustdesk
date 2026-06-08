@@ -169,7 +169,8 @@ fn generate_bindings(
             } else {
                 "i686-linux-android"
             };
-            let sysroot = PathBuf::from(ndk_home)
+            let ndk_path = PathBuf::from(ndk_home);
+            let sysroot = ndk_path
                 .join("toolchains")
                 .join("llvm")
                 .join("prebuilt")
@@ -177,7 +178,13 @@ fn generate_bindings(
                 .join("sysroot")
                 .join("usr")
                 .join("include");
-            b = b.clang_arg(format!("--sysroot={}", PathBuf::from(ndk_home).join("toolchains").join("llvm").join("prebuilt").join("linux-x86_64").join("sysroot").display()));
+            let sysroot_base = ndk_path
+                .join("toolchains")
+                .join("llvm")
+                .join("prebuilt")
+                .join("linux-x86_64")
+                .join("sysroot");
+            b = b.clang_arg(format!("--sysroot={}", sysroot_base.display()));
             b = b.clang_arg(format!("-I{}", sysroot.join(arch).display()));
         }
     }
