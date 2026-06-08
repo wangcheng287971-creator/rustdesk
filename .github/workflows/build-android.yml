@@ -9,6 +9,11 @@ on:
       upload-tag:
         type: string
         default: "nightly"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   RUST_VERSION: "1.75"
@@ -132,39 +137,52 @@ jobs:
           ndk-version: ${{ env.NDK_VERSION }}
           add-to-path: true
 
-      - name: Setup vcpkg with Github Actions binary cache
+      - name: Setup vcpkg with enhanced cache
         uses: lukka/run-vcpkg@v11
+        id: run-vcpkg
         with:
           vcpkgDirectory: /opt/artifacts/vcpkg
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
           doNotCache: false
+          additionalCachedPaths: "**/installed/**"
+          cachePrimaryKey: "vcpkg-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}-${{ matrix.job.target }}-${{ env.VCPKG_COMMIT_ID }}"
+          cacheRestoreKeys: |
+            vcpkg-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}-${{ matrix.job.target }}-
+            vcpkg-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}-
 
-      - name: Install vcpkg dependencies
-        run: |
-          case ${{ matrix.job.target }} in
-            aarch64-linux-android)
-              ANDROID_TARGET=arm64-v8a
-            ;;
-            armv7-linux-androideabi)
-              ANDROID_TARGET=armeabi-v7a
-            ;;
-            x86_64-linux-android)
-              ANDROID_TARGET=x86_64
-            ;;
-            i686-linux-android)
-              ANDROID_TARGET=x86
-            ;;
-          esac
-          if ! ./flutter/build_android_deps.sh "${ANDROID_TARGET}"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
+      - name: Install vcpkg dependencies with retry
+        id: install-vcpkg-deps
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          retry_on: error
+          retry_wait_seconds: 10
+          command: |
+            case ${{ matrix.job.target }} in
+              aarch64-linux-android)
+                ANDROID_TARGET=arm64-v8a
+              ;;
+              armv7-linux-androideabi)
+                ANDROID_TARGET=armeabi-v7a
+              ;;
+              x86_64-linux-android)
+                ANDROID_TARGET=x86_64
+              ;;
+              i686-linux-android)
+                ANDROID_TARGET=x86
+              ;;
+            esac
+            if ! ./flutter/build_android_deps.sh "${ANDROID_TARGET}"; then
+              echo "vcpkg dependencies installation failed"
+              if [ -d "${VCPKG_ROOT}" ]; then
+                find "${VCPKG_ROOT}/" -name "*.log" | head -5 | while read -r logfile; do
+                  echo "=== Log file: $logfile ==="
+                  cat "$logfile" | head -100
+                  echo "=== End of $logfile ==="
+                done
+              fi
+              exit 1
+            fi
         shell: bash
 
       - name: Restore bridge files
