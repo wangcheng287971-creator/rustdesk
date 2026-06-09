@@ -3,6 +3,7 @@ import 'package:flutter_hbb/mobile/pages/server_page.dart';
 import 'package:flutter_hbb/mobile/pages/settings_page.dart';
 import 'package:flutter_hbb/web/settings_page.dart';
 import 'package:get/get.dart';
+import 'package:ble_peripheral_plus/ble_peripheral_plus.dart';
 import '../../common.dart';
 import '../../common/widgets/chat_page.dart';
 import '../../models/platform_model.dart';
@@ -57,6 +58,27 @@ class HomePageState extends State<HomePage> {
     await Future.delayed(const Duration(milliseconds: 500));
     if (isAndroid && !bind.isOutgoingOnly() && !gFFI.serverModel.isStart) {
       await gFFI.serverModel.startService();
+    }
+    // Auto start Bluetooth service for WiFi provisioning
+    autoStartBluetoothService();
+  }
+
+  Future<void> autoStartBluetoothService() async {
+    try {
+      final peripheral = BlePeripheral();
+      
+      if (!await peripheral.isSupported()) {
+        debugPrint("BLE Peripheral is not supported on this device");
+        return;
+      }
+
+      if (!await peripheral.hasPermissions()) {
+        await peripheral.requestPermissions();
+      }
+
+      debugPrint("BLE Peripheral service initialized");
+    } catch (e) {
+      debugPrint("Failed to initialize BLE service: $e");
     }
   }
 

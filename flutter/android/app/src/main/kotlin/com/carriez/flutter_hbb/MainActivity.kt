@@ -62,6 +62,14 @@ class MainActivity : FlutterActivity() {
             channelTag
         )
         initFlutterChannel(flutterMethodChannel!!)
+        
+        // WiFi Manager channel
+        val wifiManagerChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "wifi_manager"
+        )
+        wifiManagerChannel.setMethodCallHandler(WifiManagerHandler(context))
+        
         thread {
             try {
                 setCodecInfo()
