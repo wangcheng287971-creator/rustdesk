@@ -111,7 +111,7 @@ dependencies:
   google_fonts: ^6.2.1
   vector_math: ^2.1.4
   network_info_plus: ^4.1.0
-  flutter_blue_plus: 1.13.10
+  flutter_blue_plus: 1.36.8
   wifi_scan: ^0.4.1+2
   permission_handler: ^11.3.0
   ble_peripheral_plus: ^2.5.4
